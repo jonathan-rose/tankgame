@@ -8,6 +8,7 @@ export default class PreloaderScene extends Phaser.Scene {
     preload () {
         // Units
         this.load.image('Tank', 'assets/tank.png');
+        
 
         // Tilemap Assets
         this.load.image("tiles1_png", "assets/tilemap/tiles1.png");

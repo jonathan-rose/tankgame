@@ -7,6 +7,8 @@ export default class Tank extends Phaser.GameObjects.PathFollower {
         this.x = x;
         this.y = y;
 
+        this.setOrigin(0,0);
+
         this.speed = 50;
         this.targetCoords = new Phaser.Math.Vector2(x, y);
         this.path = new Phaser.Curves.Path(0, 0);
