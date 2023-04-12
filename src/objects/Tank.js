@@ -54,4 +54,8 @@ export default class Tank extends Phaser.GameObjects.PathFollower {
         this.setPath(path);
         this.setPathTime();
     }
+
+    rotate () {
+        
+    }
 }

@@ -2,8 +2,9 @@ import 'phaser';
 import Tank from '../objects/Tank';
 import EasyStar from 'easystarjs';
 
-var tileMap;
 var finder;
+var tileMap;
+var tiles;
 
 export default class GameScene extends Phaser.Scene {
     constructor ()
@@ -23,7 +24,8 @@ export default class GameScene extends Phaser.Scene {
             height: 32
         });
 
-        const tiles = tileMap.addTilesetImage("tiles1", "tiles1_png");
+        // Load tilemap image file
+        tiles = tileMap.addTilesetImage("tiles1", "tiles1_png");
         
         // Tilemap layer setup
         // First parameter of createLayer()
@@ -33,44 +35,27 @@ export default class GameScene extends Phaser.Scene {
         // EasyStar.js pathfinding
         finder = new EasyStar.js();
         
-        const grid = [];
-            for(let y =0; y < tileMap.height; y++) {
-                let col = [];
-                for(let x = 0; x <tileMap.width; x ++){
-                    col.push(this.getTileID(x, y));
-                }
-                grid.push(col);
-            }
-
+        const grid = this.tileMapToArray(tileMap);
         finder.setGrid(grid);
 
-        const tileset = tileMap.tilesets[0];
-        const properties = tileset.tileProperties;
-        const acceptableTiles = [];
-
-        for(let i = tileset.firstgid-1; i < tiles.total; i++) {
-            if(!properties.hasOwnProperty(i)) {
-                acceptableTiles.push(i+1);
-                continue;
-            }
-            if(!properties[i].collide) acceptableTiles.push(i+1);
-            if(properties[i].cost) finder.setTileCost(i+1, properties[i].cost);
-        }
-
+        const acceptableTiles = this.findAcceptableTiles(tileMap);
         finder.setAcceptableTiles(acceptableTiles);
 
         // Units
-        this.tank = new Tank(this, 100, 100);
+        this.tank = new Tank(this, 100, 400);
 
+        // Pathfinding via Easystar
         this.input.on('pointerup', this.handleClick);
+
+        // Generate a Phaser curve and move to it
+        //
+        // this.input.on('pointerup', function () {
+        //     this.tank.move(this.input.x, this.input.y);
+        // }, this);
     }
 
     update () {
-        // let input = this.input;
 
-        // input.on('pointerdown', function () {
-        //     this.tank.move(input.x, input.y);
-        // }, this)
     }
 
     getTileID (x, y) {
@@ -90,10 +75,10 @@ export default class GameScene extends Phaser.Scene {
         var fromY = Math.floor(tank.y/32);
         
         finder.findPath(fromX, fromY, toX, toY, function (path) {
+            console.log(path);
             if (path === null) {
                 console.warn("Path was not found.");
             } else {
-                console.log(path);
                 this.moveTank(path);
             }
         }.bind(this.scene));
@@ -116,5 +101,35 @@ export default class GameScene extends Phaser.Scene {
         this.scene.scene.tweens.timeline({
             tweens: tweens
         });
+    }
+
+    tileMapToArray (tileMap) {
+        const grid = [];
+            for(let y =0; y < tileMap.height; y++) {
+                let col = [];
+                for(let x = 0; x <tileMap.width; x ++){
+                    col.push(this.getTileID(x, y));
+                }
+                grid.push(col);
+            }
+
+            return grid;
+    }
+
+    findAcceptableTiles (tileMap) {
+        const tileset = tileMap.tilesets[0];
+        const properties = tileset.tileProperties;
+        const acceptableTiles = [];
+
+        for(let i = tileset.firstgid-1; i < tiles.total; i++) {
+            if(!properties.hasOwnProperty(i)) {
+                acceptableTiles.push(i+1);
+                continue;
+            }
+            if(!properties[i].collide) acceptableTiles.push(i+1);
+            if(properties[i].cost) finder.setTileCost(i+1, properties[i].cost);
+        }
+
+        return acceptableTiles;
     }
 };
